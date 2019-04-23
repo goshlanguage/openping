@@ -12,4 +12,4 @@ build:
 
 .PHONY: docker
 docker:
-	docker build -t ryanhartje/openping .
+	docker build -t hartje/openping .
