@@ -42,10 +42,16 @@ func main() {
 	// Main loop, iterate through our sites and fetch them every n seconds
 	for {
 		for _, site := range sites {
-			err := ping.Poll(store, site)
+			rc, err := ping.Poll(store, site)
 			if err != nil {
 				if config.whc.WebhookURL != "" {
-					message := fmt.Sprintf("Downtime detected for: %s", site)
+					message := fmt.Sprintf("Error detected for %s: %v", site, err.Error())
+					config.whc.Alert(message)
+				}
+			}
+			if rc != 200 {
+				if config.whc.WebhookURL != "" {
+					message := fmt.Sprintf("Site unhealthy, received a %s response code for: %s", string(rc), site)
 					config.whc.Alert(message)
 				}
 			}

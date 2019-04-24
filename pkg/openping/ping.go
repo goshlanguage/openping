@@ -8,14 +8,12 @@ import (
 
 // GetRequest is a helper function that sets up the request. This is broken off into a help to improve testability.
 func GetRequest(url string) (request *http.Request, err error) {
-	// Create and modify HTTP request before sending
-	request, err = http.NewRequest("GET", url, nil)
-	return request, err
+	return http.NewRequest("GET", url, nil)
 }
 
 // GetDocument returns the HTML document to be stored in the document store for further analysis.
 // This will be refactored to use channels
-func GetDocument(request *http.Request) (document string, err error) {
+func GetDocument(request *http.Request) (document string, rc int, err error) {
 	// Create HTTP client with timeout
 	client := &http.Client{
 		Timeout: 5 * time.Second,
@@ -25,10 +23,10 @@ func GetDocument(request *http.Request) (document string, err error) {
 	// Make request
 	response, err := client.Do(request)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 	defer response.Body.Close()
 	data, _ := ioutil.ReadAll(response.Body)
 
-	return string(data), nil
+	return string(data), response.StatusCode, nil
 }
