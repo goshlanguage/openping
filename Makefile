@@ -13,3 +13,7 @@ build:
 .PHONY: docker
 docker:
 	docker build -t hartje/openping .
+
+.PHONY: docker-publish
+docker-publish:
+	docker push hartje/openping
