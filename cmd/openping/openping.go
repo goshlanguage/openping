@@ -42,7 +42,7 @@ func main() {
 	// Main loop, iterate through our sites and fetch them every n seconds
 	for {
 		for _, site := range sites {
-			rc, err := ping.Poll(store, site)
+			rc, latency, err := ping.Poll(store, site)
 			if err != nil {
 				if config.whc.WebhookURL != "" {
 					message := fmt.Sprintf("Error detected for %s: %v", site, err.Error())
@@ -52,6 +52,12 @@ func main() {
 			if rc != 200 {
 				if config.whc.WebhookURL != "" {
 					message := fmt.Sprintf("Site unhealthy, received a %s response code for: %s", string(rc), site)
+					config.whc.Alert(message)
+				}
+			}
+			if latency > 1 {
+				if config.whc.WebhookURL != "" {
+					message := fmt.Sprintf("Latency alert, request to %s took %v seconds", site, latency)
 					config.whc.Alert(message)
 				}
 			}

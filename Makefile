@@ -3,7 +3,7 @@ deps:
 	dep ensure -update
 
 .PHONY: test
-test: deps
+test:
 	go test -v ./pkg/...
 
 .PHONY: build

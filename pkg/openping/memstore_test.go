@@ -21,8 +21,8 @@ func TestDocumentMemoryStore(t *testing.T) {
 	testDoc := `
 	<html><head><title>Test</title></head><body><h1>OMG Great Test!</h1></body></html>
 	`
-	dms.Update(url, testDoc)
-	dms.Update(url, testDoc)
+	dms.Update(url, 200, 1.0, testDoc)
+	dms.Update(url, 200, 1.0, testDoc)
 
 	assert.Equal(
 		t,
