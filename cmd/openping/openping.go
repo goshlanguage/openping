@@ -42,8 +42,11 @@ func main() {
 	}
 
 	if mongoURL != "" {
-		store := ping.MongoStore{}
+		log.Printf("creating mongo store")
+		store, _ = ping.NewMongoStore(mongoURL)
+
 	}
+
 	// Main loop, iterate through our sites and fetch them every n seconds
 	for {
 		for _, site := range sites {
