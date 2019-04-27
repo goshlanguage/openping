@@ -12,19 +12,20 @@ import (
 
 // Config stores all the config info for openping.
 type Config struct {
-	backend    string
-	mongoDBURL string
-	poll       int
-	sites      string
-	whc        ping.WebHookConfig
+	backend string
+	store   ping.Store
+	poll    int
+	sites   string
+	whc     ping.WebHookConfig
 }
 
 func main() {
 	var store ping.Store
+	var mongoURL string
 	config := Config{}
 
 	flag.StringVar(&config.backend, "backend", "", "The backend for storage, default is in memory.")
-	flag.StringVar(&config.mongoDBURL, "mongodb-url", "", "The mongodb connection url to connect to your mongodb instance")
+	flag.StringVar(&mongoURL, "mongodb-url", "", "The mongodb connection url to connect to your mongodb instance")
 	flag.IntVar(&config.poll, "poll-period", 60, "The poll period to wait between scrapes")
 	flag.StringVar(&config.sites, "sites", "", "A common delimited string of sites to ping, ex: \"https://google.com,https://github.com\"")
 	flag.StringVar(&config.whc.IconEmoji, "slack-icon", ":hankey:", "The emoji icon for your slack messages.")
@@ -38,6 +39,10 @@ func main() {
 
 	if config.backend == "" {
 		store = ping.NewDocumentStore()
+	}
+
+	if mongoURL != "" {
+		store := ping.MongoStore{}
 	}
 	// Main loop, iterate through our sites and fetch them every n seconds
 	for {
