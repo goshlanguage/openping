@@ -36,15 +36,13 @@ func NewMongoStore(mongoDBURL string) (*MongoStore, error) {
 }
 
 // Update stores a document in a Mongo Document Store
-func (ms *MongoStore) Update(url string, rc int, latency time.Duration, document string) {
+func (ms *MongoStore) Update(url string, rc int, latency time.Duration, document string) (err error) {
 	log.Printf("creating connection")
 	collection := ms.Client.Database("openping").Collection("documents")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	res, err := collection.InsertOne(ctx, bson.M{"url": url, "rc": rc, "document": document})
 	if err != nil {
-		log.Printf("Insert Failed: %v", err.Error())
+		return err
 	}
-	id := res.InsertedID
-	log.Printf("Did a thing with an ID or something idk: %v", id)
-
+	return nil
 }

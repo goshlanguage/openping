@@ -16,7 +16,7 @@ func TestStatus(t *testing.T) {
 }
 
 func TestDocumentMemoryStore(t *testing.T) {
-	dms := NewDocumentStore()
+	dms, _ := NewDocumentStore()
 	url := "lol://test"
 	testDoc := `
 	<html><head><title>Test</title></head><body><h1>OMG Great Test!</h1></body></html>

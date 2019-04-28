@@ -26,10 +26,11 @@ func NewDocumentStore() *DocumentMemoryStore {
 }
 
 // Update takes a url and a document, and stores it in memory
-func (dms *DocumentMemoryStore) Update(url string, rc int, latency time.Duration, document string) {
+func (dms *DocumentMemoryStore) Update(url string, rc int, latency time.Duration, document string) (err error) {
 	// Check for nil map
 	if dms.Documents[url] == nil {
 		dms.Documents[url] = []string{}
 	}
 	dms.Documents[url] = append(dms.Documents[url], document)
+	return nil
 }
