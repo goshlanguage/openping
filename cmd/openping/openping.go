@@ -38,11 +38,12 @@ func main() {
 	sites := strings.Split(config.sites, ",")
 
 	if config.backend == "" {
+		log.Printf("Creating in-memory document store")
 		store = ping.NewDocumentStore()
 	}
 
 	if mongoURL != "" {
-		log.Printf("creating mongo store")
+		log.Printf("Connecting to MongoDB: %v", mongoURL)
 		store, _ = ping.NewMongoStore(mongoURL)
 
 	}

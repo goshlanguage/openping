@@ -81,8 +81,9 @@ func TestTimeout(t *testing.T) {
 
 	doc, rc, latency, err := GetDocument(req)
 	assert.True(t, latency > (5*time.Second), "Latency measurement seems inaccurate.")
-	assert.Equal(t, doc, "Slow Request")
-	assert.Equal(t, rc, 200)
+	assert.Equalf(t, "", doc, "A timed out document should produce an empty document, got: %v", doc)
+	assert.Equalf(t, 0, rc, "A timed out request should have a 0 return code, got: %v", rc)
+	assert.Error(t, err, "Expected an error for timing out, got nil instead.")
 }
 
 func Mock200Handler(w http.ResponseWriter, r *http.Request) {
@@ -101,5 +102,5 @@ func MockSleepyHandler(w http.ResponseWriter, r *http.Request) {
 
 func MockTimeoutHandler(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(6 * time.Second)
-	io.WriteString(w, "Slow Request")
+	io.WriteString(w, "TimedOut")
 }

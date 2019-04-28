@@ -40,7 +40,7 @@ func (ms *MongoStore) Update(url string, rc int, latency time.Duration, document
 	log.Printf("creating connection")
 	collection := ms.Client.Database("openping").Collection("documents")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	res, err := collection.InsertOne(ctx, bson.M{"url": url, "rc": rc, "document": document})
+	_, err = collection.InsertOne(ctx, bson.M{"url": url, "rc": rc, "document": document})
 	if err != nil {
 		return err
 	}
