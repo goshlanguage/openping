@@ -3,7 +3,6 @@ package ping
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -36,13 +35,52 @@ func NewMongoStore(mongoDBURL string) (*MongoStore, error) {
 }
 
 // Update stores a document in a Mongo Document Store
-func (ms *MongoStore) Update(url string, rc int, latency time.Duration, document string) (err error) {
-	log.Printf("creating connection")
-	collection := ms.Client.Database("openping").Collection("documents")
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	_, err = collection.InsertOne(ctx, bson.M{"url": url, "rc": rc, "document": document})
+// It iterates through the 4 data models we have,
+// 		Uptime,
+// 		Latency,
+// 		Metadata,
+//		ContentSizes (not yet implemented)
+func (ms *MongoStore) Update(uptime Uptime, latency Latency, meta Metadata, size ContentSizes) (err error) {
+	uptimeCollection := ms.Client.Database("openping").Collection("uptime")
+	uctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	uptimePayload := bson.M{
+		"up":        uptime.Up,
+		"timestamp": uptime.Timestamp,
+		"url":       uptime.URL,
+	}
+	_, err = uptimeCollection.InsertOne(uctx, uptimePayload)
 	if err != nil {
 		return err
 	}
+
+	latencyCollection := ms.Client.Database("openping").Collection("latency")
+	lctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	latencyPayload := bson.M{
+		"dnslookup":    latency.DNSLookup,
+		"tlshandshake": latency.TLSHandshake,
+		"ttfb":         latency.TTFB,
+		"total":        latency.TotalLatency,
+		"timestamp":    latency.Timestamp,
+		"url":          latency.URL,
+	}
+	_, err = latencyCollection.InsertOne(lctx, latencyPayload)
+	if err != nil {
+		return err
+	}
+
+	metadataCollection := ms.Client.Database("openping").Collection("metadata")
+	mctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	metadataPayload := bson.M{
+		"bytes":     meta.Bytes,
+		"document":  meta.Document,
+		"sha256sum": meta.SHASum,
+		"timestamp": meta.Timestamp,
+		"url":       meta.URL,
+	}
+	_, err = metadataCollection.InsertOne(mctx, metadataPayload)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -1,7 +1,9 @@
 package ping
 
 import (
+	"crypto/sha256"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,14 +18,9 @@ func GetRequest(url string) (request *http.Request, err error) {
 
 // GetDocument returns the HTML document to be stored in the document store for further analysis.
 // This will be refactored to use channels
-func GetDocument(request *http.Request) (document string, rc int, latency time.Duration, err error) {
-	var dns0, dns1, tls0, tls1, ttfb0, ttfb1, conn1 time.Time
-	// Create HTTP client with timeout
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-	request.Header.Set("User-Agent", "MobileSafari/604.1 CFNetwork/978.0.7 Darwin/18.5.0")
-
+// Sets up HTTP trace, sets a timeout of 30 seconds, mimics a user agent,
+func GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Metadata, size ContentSizes, err error) {
+	var dns0, dns1, tls0, tls1, ttfb0, ttfb1, conn0, conn1 time.Time
 	trace := &httptrace.ClientTrace{
 		ConnectStart: func(string, string) {
 			ttfb0 = time.Now()
@@ -45,31 +42,64 @@ func GetDocument(request *http.Request) (document string, rc int, latency time.D
 		},
 	}
 
+	// Create HTTP client with timeout
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	request.Header.Set("User-Agent", "MobileSafari/604.1 CFNetwork/978.0.7 Darwin/18.5.0")
 	request = request.WithContext(httptrace.WithClientTrace(request.Context(), trace))
 	if _, err := http.DefaultTransport.RoundTrip(request); err != nil {
-		log.Printf("Oops, %v", err.Error())
+		return Uptime{time.Now(), false, 0, request.RequestURI}, Latency{}, Metadata{}, ContentSizes{}, err
 	}
 
+	url := request.URL.Host
+	conn0 = time.Now()
 	response, err := client.Do(request)
+	// Use this timestamp to populate our structs so they have a common timestamp.
+	timestamp := time.Now().UTC()
 	conn1 = time.Now()
-
-	dnsLookupTime := dns1.Sub(dns0)
-	log.Printf("DNS Time info: %v", dnsLookupTime)
-
-	tlsHandshakeTime := tls1.Sub(tls0)
-	log.Printf("TLS Handshake time: %v", tlsHandshakeTime)
-
-	ttfb := ttfb1.Sub(ttfb0)
-	log.Printf("TTFB time: %v", ttfb)
-
-	latency = conn1.Sub(ttfb0)
-	log.Printf("All done: %v", latency)
-
-	if err != nil {
-		return "", 0, latency, err
-	}
 	defer response.Body.Close()
-	data, _ := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return Uptime{time.Now(), false, response.StatusCode, url}, Latency{}, Metadata{}, ContentSizes{}, err
+	}
+	doc, _ := ioutil.ReadAll(response.Body)
 
-	return string(data), response.StatusCode, latency, nil
+	// Setup Uptime model
+	uptime.RC = response.StatusCode
+	if response.StatusCode == 200 {
+		uptime.Up = true
+	} else {
+		uptime.Up = false
+	}
+	uptime.Timestamp = timestamp
+	uptime.URL = url
+
+	// Setup Metadata model
+	meta.Document = string(doc)
+	meta.Bytes = len(doc)
+	meta.SHASum = fmt.Sprintf("%x", sha256.Sum256(doc))
+	meta.Timestamp = timestamp
+	meta.URL = url
+
+	// Setup Latency and print off latency times if anything seems odd
+	latency.DNSLookup = dns1.Sub(dns0)
+	latency.TotalLatency = conn1.Sub(conn0)
+	latency.TLSHandshake = tls1.Sub(tls0)
+	latency.TTFB = ttfb1.Sub(ttfb0)
+	latency.Timestamp = timestamp
+	latency.URL = url
+
+	// This is pretty hideous, open to suggestions / new ideas
+	if !(latency.DNSLookup > (0 * time.Second)) ||
+		!(latency.TotalLatency > (0 * time.Second)) ||
+		!(latency.TTFB > (0 * time.Second)) {
+
+		log.Printf("Possible lookup issue for URL: %v", request.URL)
+		log.Printf("DNS Time info: %v", latency.DNSLookup)
+		log.Printf("Latency: %v", latency.TotalLatency)
+		log.Printf("TLS Handshake time: %v", latency.TLSHandshake)
+		log.Printf("TTFB time: %v", latency.TTFB)
+	}
+
+	return uptime, latency, meta, ContentSizes{}, nil
 }

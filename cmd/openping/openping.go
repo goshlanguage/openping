@@ -13,9 +13,9 @@ import (
 // Config stores all the config info for openping.
 type Config struct {
 	backend string
-	store   ping.Store
 	poll    int
 	sites   string
+	store   ping.Store
 	whc     ping.WebHookConfig
 }
 
@@ -51,22 +51,22 @@ func main() {
 	// Main loop, iterate through our sites and fetch them every n seconds
 	for {
 		for _, site := range sites {
-			rc, latency, err := ping.Poll(store, site)
+			uptime, latency, _, _, err := ping.Poll(store, site)
 			if err != nil {
 				if config.whc.WebhookURL != "" {
 					message := fmt.Sprintf("Error detected for %s: %v", site, err.Error())
 					config.whc.Alert(message)
 				}
 			}
-			if rc != 200 {
+			if !uptime.Up {
 				if config.whc.WebhookURL != "" {
-					message := fmt.Sprintf("Site unhealthy, received a %s response code for: %s", string(rc), site)
+					message := fmt.Sprintf("Site unhealthy, received a %s response code for: %s", string(uptime.RC), site)
 					config.whc.Alert(message)
 				}
 			}
-			if latency > 1 {
+			if latency.TotalLatency > (3 * time.Second) {
 				if config.whc.WebhookURL != "" {
-					message := fmt.Sprintf("Latency alert, request to %s took %v seconds", site, latency)
+					message := fmt.Sprintf("Latency alert, request to %s took %v seconds", site, latency.TotalLatency)
 					config.whc.Alert(message)
 				}
 			}

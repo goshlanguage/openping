@@ -11,26 +11,27 @@ type Status struct {
 // DocumentMemoryStore is an in memory store to track state of Documents.
 // Documents are stored using the URL as the key, as is state.
 type DocumentMemoryStore struct {
-	Documents map[string][]string
-	State     map[string]Status
+	Uptimes   []Uptime
+	Latencies []Latency
+	Metas     []Metadata
+	Sizes     []ContentSizes
 }
 
 // NewDocumentStore is a factory for DocumentMemoryStores
 func NewDocumentStore() *DocumentMemoryStore {
-	docs := make(map[string][]string)
-	state := make(map[string]Status)
 	return &DocumentMemoryStore{
-		Documents: docs,
-		State:     state,
+		Uptimes:   []Uptime{},
+		Latencies: []Latency{},
+		Metas:     []Metadata{},
+		Sizes:     []ContentSizes{},
 	}
 }
 
 // Update takes a url and a document, and stores it in memory
-func (dms *DocumentMemoryStore) Update(url string, rc int, latency time.Duration, document string) (err error) {
-	// Check for nil map
-	if dms.Documents[url] == nil {
-		dms.Documents[url] = []string{}
-	}
-	dms.Documents[url] = append(dms.Documents[url], document)
+func (dms *DocumentMemoryStore) Update(uptime Uptime, latency Latency, meta Metadata, size ContentSizes) (err error) {
+	dms.Uptimes = append(dms.Uptimes, uptime)
+	dms.Latencies = append(dms.Latencies, latency)
+	dms.Metas = append(dms.Metas, meta)
+	dms.Sizes = append(dms.Sizes, size)
 	return nil
 }

@@ -1,17 +1,21 @@
 package ping
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 // Poll polls, is a helper for our cmd client
-func Poll(s Store, url string) (rc int, latency time.Duration, err error) {
+func Poll(s Store, url string) (uptime Uptime, latency Latency, metadata Metadata, sizes ContentSizes, err error) {
 	request, err := GetRequest(url)
 	if err != nil {
-		return 0, 0, err
+		return Uptime{Up: false, Timestamp: time.Now()}, Latency{}, Metadata{}, ContentSizes{}, err
 	}
-	doc, rc, latency, err := GetDocument(request)
+	uptime, latency, metadata, sizes, err = GetDocument(request)
+	log.Printf("%s %v %d bytes - %v", url, uptime.RC, metadata.Bytes, latency.TotalLatency)
 	if err != nil {
-		return 0, 0, err
+		return Uptime{time.Now(), false, uptime.RC, request.RequestURI}, Latency{}, Metadata{}, ContentSizes{}, err
 	}
-	s.Update(url, rc, latency, doc)
-	return rc, latency, nil
+	s.Update(uptime, latency, metadata, sizes)
+	return uptime, latency, metadata, sizes, nil
 }

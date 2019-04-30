@@ -16,19 +16,27 @@ func TestStatus(t *testing.T) {
 }
 
 func TestDocumentMemoryStore(t *testing.T) {
-	dms, _ := NewDocumentStore()
+	dms := NewDocumentStore()
 	url := "lol://test"
 	testDoc := `
 	<html><head><title>Test</title></head><body><h1>OMG Great Test!</h1></body></html>
 	`
-	dms.Update(url, 200, 1.0, testDoc)
-	dms.Update(url, 200, 1.0, testDoc)
+	uptime := Uptime{time.Now(), true, 200, "localhost"}
+	meta := Metadata{Document: testDoc, URL: url}
+	dms.Update(uptime, Latency{}, meta, ContentSizes{})
+	dms.Update(uptime, Latency{}, meta, ContentSizes{})
 
 	assert.Equal(
 		t,
-		len(dms.Documents[url]),
+		len(dms.Metas),
 		2,
 		"Error, inserted 2 documents but have a document store size of %v",
-		len(dms.Documents[url]),
+		len(dms.Metas),
+	)
+	assert.Equal(
+		t,
+		url,
+		meta.URL,
+		ContentSizes{},
 	)
 }
