@@ -5,7 +5,7 @@ import "time"
 // Uptime stores uptime information.
 type Uptime struct {
 	Timestamp time.Time `json:"timestamp"` // The time of the request
-	Up        bool      `json:"up"`        // A 200 Status code, free from common errors
+	Up        int       `json:"up"`        // 1 if request returns a 200 Status code, free from common errors
 	RC        int       `json:"rc"`        // Return code
 	URL       string    `json:"url"`
 }
