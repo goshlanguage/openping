@@ -66,7 +66,7 @@ func GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Me
 
 	// Setup Uptime model
 	uptime.RC = response.StatusCode
-	if response.StatusCode == 200 {
+	if response.StatusCode == 200 && response.ContentLength > 0 {
 		uptime.Up = true
 	} else {
 		uptime.Up = false

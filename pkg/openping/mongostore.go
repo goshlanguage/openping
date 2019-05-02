@@ -46,6 +46,7 @@ func (ms *MongoStore) Update(uptime Uptime, latency Latency, meta Metadata, size
 	uptimePayload := bson.M{
 		"up":        uptime.Up,
 		"timestamp": uptime.Timestamp,
+		"rc":        uptime.RC,
 		"url":       uptime.URL,
 	}
 	_, err = uptimeCollection.InsertOne(uctx, uptimePayload)

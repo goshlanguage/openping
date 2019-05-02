@@ -8,7 +8,7 @@ test:
 
 .PHONY: build
 build:
-	dep ensure -v .
+	dep ensure -v
 
 .PHONY: docker
 docker:
