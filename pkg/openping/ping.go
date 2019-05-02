@@ -49,7 +49,7 @@ func GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Me
 	request.Header.Set("User-Agent", "MobileSafari/604.1 CFNetwork/978.0.7 Darwin/18.5.0")
 	request = request.WithContext(httptrace.WithClientTrace(request.Context(), trace))
 	if _, err := http.DefaultTransport.RoundTrip(request); err != nil {
-		return Uptime{time.Now(), false, 0, request.RequestURI}, Latency{}, Metadata{}, ContentSizes{}, err
+		return Uptime{time.Now(), 0, 0, request.RequestURI}, Latency{}, Metadata{}, ContentSizes{}, err
 	}
 
 	url := request.URL.Host
@@ -60,7 +60,7 @@ func GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Me
 	conn1 = time.Now()
 	defer response.Body.Close()
 	if err != nil {
-		return Uptime{time.Now(), false, response.StatusCode, url}, Latency{}, Metadata{}, ContentSizes{}, err
+		return Uptime{time.Now(), 0, response.StatusCode, url}, Latency{}, Metadata{}, ContentSizes{}, err
 	}
 	doc, _ := ioutil.ReadAll(response.Body)
 
