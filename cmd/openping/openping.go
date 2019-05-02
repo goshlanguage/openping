@@ -58,7 +58,7 @@ func main() {
 					config.whc.Alert(message)
 				}
 			}
-			if !uptime.Up {
+			if uptime.Up == 0 {
 				if config.whc.WebhookURL != "" {
 					message := fmt.Sprintf("Site unhealthy, received a %v response code for: %s", uptime.RC, site)
 					config.whc.Alert(message)
