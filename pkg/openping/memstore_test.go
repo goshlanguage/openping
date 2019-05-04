@@ -16,12 +16,20 @@ func TestStatus(t *testing.T) {
 }
 
 func TestDocumentMemoryStore(t *testing.T) {
+	ld := LocationData{}
 	dms := NewDocumentStore()
 	url := "lol://test"
 	testDoc := `
 	<html><head><title>Test</title></head><body><h1>OMG Great Test!</h1></body></html>
 	`
-	uptime := Uptime{time.Now(), true, 200, "localhost"}
+	uptime := Uptime{
+		Timestamp: time.Now(),
+		Up:        1,
+		RC:        200,
+		URL:       "localhost",
+		Locale:    ld.Locale,
+		Country:   ld.Country,
+	}
 	meta := Metadata{Document: testDoc, URL: url}
 	dms.Update(uptime, Latency{}, meta, ContentSizes{})
 	dms.Update(uptime, Latency{}, meta, ContentSizes{})

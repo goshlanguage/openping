@@ -23,6 +23,7 @@ func main() {
 	var store ping.Store
 	var mongoURL string
 	config := Config{}
+	locale := ping.LocationData{}
 
 	flag.StringVar(&config.backend, "backend", "", "The backend for storage, default is in memory.")
 	flag.StringVar(&mongoURL, "mongodb-url", "", "The mongodb connection url to connect to your mongodb instance")
@@ -31,6 +32,8 @@ func main() {
 	flag.StringVar(&config.whc.IconEmoji, "slack-icon", ":hankey:", "The emoji icon for your slack messages.")
 	flag.StringVar(&config.whc.Username, "slack-username", "OpenPing Bot", "The display name for your slack messages.")
 	flag.StringVar(&config.whc.WebhookURL, "slack-url", "", "Enter your slack webhook-url.")
+	flag.StringVar(&locale.Locale, "locale", "", "If set, locale will store the location of the poller in the datastore")
+	flag.StringVar(&locale.Country, "country", "", "If set, country will store the country of the poller in the datastore")
 
 	flag.Parse()
 
@@ -51,7 +54,7 @@ func main() {
 	// Main loop, iterate through our sites and fetch them every n seconds
 	for {
 		for _, site := range sites {
-			uptime, latency, _, _, err := ping.Poll(store, site)
+			uptime, latency, _, _, err := ping.Poll(store, site, locale)
 			if err != nil {
 				if config.whc.WebhookURL != "" {
 					message := fmt.Sprintf("Error detected for %s: %v", site, err.Error())

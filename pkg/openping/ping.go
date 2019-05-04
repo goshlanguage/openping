@@ -19,7 +19,7 @@ func GetRequest(url string) (request *http.Request, err error) {
 // GetDocument returns the HTML document to be stored in the document store for further analysis.
 // This will be refactored to use channels
 // Sets up HTTP trace, sets a timeout of 30 seconds, mimics a user agent,
-func GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Metadata, size ContentSizes, err error) {
+func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Metadata, size ContentSizes, err error) {
 	var dns0, dns1, tls0, tls1, ttfb0, ttfb1, conn0, conn1 time.Time
 	trace := &httptrace.ClientTrace{
 		ConnectStart: func(string, string) {
@@ -49,7 +49,14 @@ func GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Me
 	request.Header.Set("User-Agent", "MobileSafari/604.1 CFNetwork/978.0.7 Darwin/18.5.0")
 	request = request.WithContext(httptrace.WithClientTrace(request.Context(), trace))
 	if _, err := http.DefaultTransport.RoundTrip(request); err != nil {
-		return Uptime{time.Now(), 0, 0, request.RequestURI}, Latency{}, Metadata{}, ContentSizes{}, err
+		return Uptime{
+			Up:        0,
+			Timestamp: time.Now(),
+			RC:        0,
+			URL:       request.RequestURI,
+			Locale:    l.Locale,
+			Country:   l.Country,
+		}, Latency{}, Metadata{}, ContentSizes{}, err
 	}
 
 	url := request.URL.Host
@@ -60,7 +67,14 @@ func GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Me
 	conn1 = time.Now()
 	defer response.Body.Close()
 	if err != nil {
-		return Uptime{time.Now(), 0, response.StatusCode, url}, Latency{}, Metadata{}, ContentSizes{}, err
+		return Uptime{
+			Timestamp: time.Now(),
+			Up:        0,
+			RC:        response.StatusCode,
+			URL:       request.RequestURI,
+			Locale:    l.Locale,
+			Country:   l.Country,
+		}, Latency{}, Metadata{}, ContentSizes{}, err
 	}
 	doc, _ := ioutil.ReadAll(response.Body)
 

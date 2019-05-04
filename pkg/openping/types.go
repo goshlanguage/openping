@@ -8,6 +8,8 @@ type Uptime struct {
 	Up        int       `json:"up"`        // 1 if request returns a 200 Status code, free from common errors
 	RC        int       `json:"rc"`        // Return code
 	URL       string    `json:"url"`
+	Locale    string    `json:"locale,omitempty"`
+	Country   string    `json:"country,omitempty"`
 }
 
 // Latency contains measurements of time for page loads
@@ -18,6 +20,8 @@ type Latency struct {
 	TotalLatency time.Duration `json:"total_latency"` // Time from connection to response
 	TTFB         time.Duration `json:"ttfb"`          // Time from Connection started to FirstByte Received
 	URL          string        `json:"url"`
+	Locale       string        `json:"locale,omitempty"`
+	Country      string        `json:"country,omitempty"`
 }
 
 // ContentSizes breaks down the sizes of various parts of a request
@@ -28,6 +32,8 @@ type ContentSizes struct {
 	ImageSize    int    `json:"image_size"`    // Sum of Size in bytes of all jpg,jpeg,png,gif,svg,and ico links
 	ScriptSize   int    `json:"script_size"`   // Sum of all Javascript linked script files and inline scripts
 	URL          string `json:"url"`
+	Locale       string `json:"locale,omitempty"`
+	Country      string `json:"country,omitempty"`
 }
 
 // Metadata stores basic meta about a request
@@ -37,4 +43,13 @@ type Metadata struct {
 	SHASum    string    `json:"shasum"`    // A SHA sum fingerprint of the document
 	Timestamp time.Time `json:"timestamp"` // The time of the request
 	URL       string    `json:"url"`
+	Locale    string    `json:"locale,omitempty"`
+	Country   string    `json:"country,omitempty"`
+}
+
+// LocationData should be used to track information about where requests are made from
+type LocationData struct {
+	Locale  string `json:"locale,omitempty"`
+	Country string `json:"country,omitempty"`
+	IP      string `json:"ip,omitempty"` // TODO write function to get IP
 }

@@ -24,7 +24,9 @@ func TestGetDocument(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	uptime, latency, meta, _, err := GetDocument(req)
+	ld := LocationData{}
+
+	uptime, latency, meta, _, err := ld.GetDocument(req)
 	assert.True(t, latency.TotalLatency < time.Second, "Latency reading seems inaccurate")
 	assert.Equal(t, meta.Document, "OK")
 	assert.Equal(t, uptime.RC, 200)
@@ -35,7 +37,7 @@ func TestGetDocument(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	uptime, latency, meta, _, err = GetDocument(req)
+	uptime, latency, meta, _, err = ld.GetDocument(req)
 	assert.True(t, latency.TotalLatency < time.Second, "Latency reading seems inaccurate, got: %v", latency.TotalLatency)
 }
 
@@ -43,17 +45,19 @@ func TestGetDocument(t *testing.T) {
 // We do this to ensure an unresolvable entry will not make the service panic, and that it handles the failure
 // gracefully
 func TestUnresolved(t *testing.T) {
+	ld := LocationData{}
 	req, err := GetRequest("http://foo.bar")
 	if err != nil {
 		t.Errorf("Error forming request for foo.bar: %v", err.Error())
 	}
-	uptime, _, _, _, err := GetDocument(req)
+	uptime, _, _, _, err := ld.GetDocument(req)
 	assert.EqualError(t, err, "dial tcp: lookup foo.bar: no such host")
 	assert.Equal(t, 0, uptime.RC, "Return code for a timeout should be 0, the nil value.")
 }
 
 // Test400Response makes sure we handle a 400 response code correctly
 func Test400Response(t *testing.T) {
+	ld := LocationData{}
 	// Start a local HTTP server
 	server := httptest.NewServer(http.HandlerFunc(Mock400Handler))
 	// Close the server when test finishes
@@ -63,7 +67,7 @@ func Test400Response(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	uptime, latency, meta, _, err := GetDocument(req)
+	uptime, latency, meta, _, err := ld.GetDocument(req)
 	assert.True(t, latency.TotalLatency < time.Second, "Latency seems inaccurate")
 	assert.Equal(t, meta.Document, "Bad Request")
 	assert.Equal(t, uptime.RC, 400)
@@ -78,7 +82,8 @@ func TestLatency(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	uptime, latency, meta, _, err := GetDocument(req)
+	ld := LocationData{}
+	uptime, latency, meta, _, err := ld.GetDocument(req)
 	assert.True(t, latency.TotalLatency > (2*time.Second), "Latency measurement seems inaccurate.")
 	assert.Equal(t, meta.Document, "Slow Request")
 	assert.Equal(t, uptime.RC, 200)
