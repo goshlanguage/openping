@@ -48,6 +48,8 @@ func (ms *MongoStore) Update(uptime Uptime, latency Latency, meta Metadata, size
 		"timestamp": uptime.Timestamp,
 		"rc":        uptime.RC,
 		"url":       uptime.URL,
+		"locale":    uptime.Locale,
+		"country":   uptime.Country,
 	}
 	_, err = uptimeCollection.InsertOne(uctx, uptimePayload)
 	if err != nil {

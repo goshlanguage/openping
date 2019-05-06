@@ -87,6 +87,8 @@ func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latenc
 	}
 	uptime.Timestamp = timestamp
 	uptime.URL = url
+	uptime.Locale = l.Locale
+	uptime.Country = l.Country
 
 	// Setup Metadata model
 	meta.Document = string(doc)
@@ -94,6 +96,8 @@ func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latenc
 	meta.SHASum = fmt.Sprintf("%x", sha256.Sum256(doc))
 	meta.Timestamp = timestamp
 	meta.URL = url
+	meta.Locale = l.Locale
+	meta.Country = l.Country
 
 	// Setup Latency and print off latency times if anything seems odd
 	latency.DNSLookup = dns1.Sub(dns0)
@@ -102,6 +106,8 @@ func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latenc
 	latency.TTFB = ttfb1.Sub(ttfb0)
 	latency.Timestamp = timestamp
 	latency.URL = url
+	latency.Locale = l.Locale
+	latency.Country = l.Country
 
 	// This is pretty hideous, open to suggestions / new ideas
 	if !(latency.DNSLookup > (0 * time.Second)) ||
