@@ -14,14 +14,14 @@ type Uptime struct {
 
 // Latency contains measurements of time for page loads
 type Latency struct {
-	DNSLookup    time.Duration `json:"dns_lookup"`    // Time from DNSLookupStart to DNSLookupDone
-	Timestamp    time.Time     `json:"timestamp"`     // The time of the request
-	TLSHandshake time.Duration `json:"tls_handshake"` // Time from TLSHandshakeStart to TLSHandshakeDone
-	TotalLatency time.Duration `json:"total_latency"` // Time from connection to response
-	TTFB         time.Duration `json:"ttfb"`          // Time from Connection started to FirstByte Received
-	URL          string        `json:"url"`
-	Locale       string        `json:"locale,omitempty"`
-	Country      string        `json:"country,omitempty"`
+	DNSLookup    float64   `json:"dns_lookup"`    // Time from DNSLookupStart to DNSLookupDone
+	Timestamp    time.Time `json:"timestamp"`     // The time of the request
+	TLSHandshake float64   `json:"tls_handshake"` // Time from TLSHandshakeStart to TLSHandshakeDone
+	TotalLatency float64   `json:"total_latency"` // Time from connection to response
+	TTFB         float64   `json:"ttfb"`          // Time from Connection started to FirstByte Received
+	URL          string    `json:"url"`
+	Locale       string    `json:"locale,omitempty"`
+	Country      string    `json:"country,omitempty"`
 }
 
 // ContentSizes breaks down the sizes of various parts of a request

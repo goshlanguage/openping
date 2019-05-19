@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httptrace"
 	"time"
@@ -20,9 +21,13 @@ func GetRequest(url string) (request *http.Request, err error) {
 // This will be refactored to use channels
 // Sets up HTTP trace, sets a timeout of 30 seconds, mimics a user agent,
 func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latency Latency, meta Metadata, size ContentSizes, err error) {
+	var tlsTrace bool
 	var dns0, dns1, tls0, tls1, ttfb0, ttfb1, conn0, conn1 time.Time
+
+	// For information on trace, see:
+	// 	https://golang.org/pkg/net/http/httptrace/
 	trace := &httptrace.ClientTrace{
-		ConnectStart: func(string, string) {
+		GetConn: func(addr string) {
 			ttfb0 = time.Now()
 		},
 		GotFirstResponseByte: func() {
@@ -35,6 +40,7 @@ func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latenc
 			dns1 = time.Now()
 		},
 		TLSHandshakeStart: func() {
+			tlsTrace = true
 			tls0 = time.Now()
 		},
 		TLSHandshakeDone: func(tls.ConnectionState, error) {
@@ -42,9 +48,20 @@ func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latenc
 		},
 	}
 
-	// Create HTTP client with timeout
+	// Create HTTP client with timeout and trasport configuration that ensures that DNS/TLS isn't miscalculated
 	client := &http.Client{
 		Timeout: 30 * time.Second,
+		Transport: &http.Transport{
+			DisableCompression: true,
+			Proxy:              http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Second,
+				KeepAlive: 0,
+			}).DialContext,
+			DisableKeepAlives:   true,
+			MaxIdleConns:        10,
+			TLSHandshakeTimeout: 10 * time.Second,
+		},
 	}
 	request.Header.Set("User-Agent", "MobileSafari/604.1 CFNetwork/978.0.7 Darwin/18.5.0")
 	request = request.WithContext(httptrace.WithClientTrace(request.Context(), trace))
@@ -100,19 +117,21 @@ func (l *LocationData) GetDocument(request *http.Request) (uptime Uptime, latenc
 	meta.Country = l.Country
 
 	// Setup Latency and print off latency times if anything seems odd
-	latency.DNSLookup = dns1.Sub(dns0)
-	latency.TotalLatency = conn1.Sub(conn0)
-	latency.TLSHandshake = tls1.Sub(tls0)
-	latency.TTFB = ttfb1.Sub(ttfb0)
+	latency.DNSLookup = dns1.Sub(dns0).Seconds()
+	latency.TotalLatency = conn1.Sub(conn0).Seconds()
+	latency.TTFB = ttfb1.Sub(ttfb0).Seconds()
+	if tlsTrace {
+		latency.TLSHandshake = tls1.Sub(tls0).Seconds()
+	}
 	latency.Timestamp = timestamp
 	latency.URL = url
 	latency.Locale = l.Locale
 	latency.Country = l.Country
 
 	// This is pretty hideous, open to suggestions / new ideas
-	if !(latency.DNSLookup > (0 * time.Second)) ||
-		!(latency.TotalLatency > (0 * time.Second)) ||
-		!(latency.TTFB > (0 * time.Second)) {
+	if !(latency.DNSLookup > 0) ||
+		!(latency.TotalLatency > 0) ||
+		!(latency.TTFB > 0) {
 
 		log.Printf("Possible lookup issue for URL: %v", request.URL)
 		log.Printf("DNS Time info: %v", latency.DNSLookup)

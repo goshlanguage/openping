@@ -22,6 +22,7 @@ type Config struct {
 func main() {
 	var store ping.Store
 	var mongoURL string
+	var err error
 	config := Config{}
 	locale := ping.LocationData{}
 
@@ -34,7 +35,6 @@ func main() {
 	flag.StringVar(&config.whc.WebhookURL, "slack-url", "", "Enter your slack webhook-url.")
 	flag.StringVar(&locale.Locale, "locale", "", "If set, locale will store the location of the poller in the datastore")
 	flag.StringVar(&locale.Country, "country", "", "If set, country will store the country of the poller in the datastore")
-
 	flag.Parse()
 
 	log.Print("Starting openping daemon")
@@ -47,8 +47,10 @@ func main() {
 
 	if mongoURL != "" {
 		log.Printf("Connecting to MongoDB: %v", mongoURL)
-		store, _ = ping.NewMongoStore(mongoURL)
-
+		store, err = ping.NewMongoStore(mongoURL)
+		if err != nil {
+			log.Printf("Error: %v", err.Error())
+		}
 	}
 
 	// Main loop, iterate through our sites and fetch them every n seconds
@@ -67,7 +69,7 @@ func main() {
 					config.whc.Alert(message)
 				}
 			}
-			if latency.TotalLatency > (3 * time.Second) {
+			if latency.TotalLatency > 3 {
 				if config.whc.WebhookURL != "" {
 					message := fmt.Sprintf("Latency alert, request to %s took %v seconds", site, latency.TotalLatency)
 					config.whc.Alert(message)
