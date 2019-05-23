@@ -21,13 +21,15 @@ type Config struct {
 
 func main() {
 	var store ping.Store
-	var mongoURL string
+	var mongoURL, mongoUser, mongoPassword string
 	var err error
 	config := Config{}
 	locale := ping.LocationData{}
 
 	flag.StringVar(&config.backend, "backend", "", "The backend for storage, default is in memory.")
 	flag.StringVar(&mongoURL, "mongodb-url", "", "The mongodb connection url to connect to your mongodb instance")
+	flag.StringVar(&mongoUser, "mongodb-user", "", "The mongodb user to connect as")
+	flag.StringVar(&mongoPassword, "mongodb-password", "", "The mongodb password to authenticate with")
 	flag.IntVar(&config.poll, "poll-period", 60, "The poll period to wait between scrapes")
 	flag.StringVar(&config.sites, "sites", "", "A common delimited string of sites to ping, ex: \"https://google.com,https://github.com\"")
 	flag.StringVar(&config.whc.IconEmoji, "slack-icon", ":hankey:", "The emoji icon for your slack messages.")
@@ -47,7 +49,11 @@ func main() {
 
 	if mongoURL != "" {
 		log.Printf("Connecting to MongoDB: %v", mongoURL)
-		store, err = ping.NewMongoStore(mongoURL)
+		if mongoUser != "" && mongoPassword != "" {
+			store, err = ping.NewMongoStore(mongoURL, mongoUser, mongoPassword)
+		} else {
+			store, err = ping.NewMongoStore(mongoURL, "", "")
+		}
 		if err != nil {
 			log.Printf("Error: %v", err.Error())
 		}

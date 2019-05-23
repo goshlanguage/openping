@@ -17,8 +17,12 @@ type MongoStore struct {
 }
 
 // NewMongoStore is a factory for MongoDB backed Document Storage
-func NewMongoStore(mongoDBURL string) (*MongoStore, error) {
+// The default attempts to connect to mongodb
+func NewMongoStore(mongoDBURL string, user string, password string) (*MongoStore, error) {
 	mongoURI := fmt.Sprintf("mongodb://%v:27017", mongoDBURL)
+	if user != "" && password != "" {
+		mongoURI = fmt.Sprintf("mongodb://%s:%s@%v:27017", mongoDBURL, user, password)
+	}
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		return nil, err

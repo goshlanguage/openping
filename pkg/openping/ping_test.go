@@ -27,7 +27,7 @@ func TestGetDocument(t *testing.T) {
 	ld := LocationData{}
 
 	uptime, latency, meta, _, err := ld.GetDocument(req)
-	assert.True(t, latency.TotalLatency < time.Second, "Latency reading seems inaccurate")
+	assert.True(t, latency.TotalLatency < 1, "Latency reading seems inaccurate")
 	assert.Equal(t, meta.Document, "OK")
 	assert.Equal(t, uptime.RC, 200)
 
@@ -38,7 +38,7 @@ func TestGetDocument(t *testing.T) {
 	}
 
 	uptime, latency, meta, _, err = ld.GetDocument(req)
-	assert.True(t, latency.TotalLatency < time.Second, "Latency reading seems inaccurate, got: %v", latency.TotalLatency)
+	assert.True(t, latency.TotalLatency < 1, "Latency reading seems inaccurate, got: %v", latency.TotalLatency)
 }
 
 // TestUnresolved tests the response from an unresolvable URL.
@@ -68,7 +68,7 @@ func Test400Response(t *testing.T) {
 	}
 
 	uptime, latency, meta, _, err := ld.GetDocument(req)
-	assert.True(t, latency.TotalLatency < time.Second, "Latency seems inaccurate")
+	assert.True(t, latency.TotalLatency < 1, "Latency seems inaccurate")
 	assert.Equal(t, meta.Document, "Bad Request")
 	assert.Equal(t, uptime.RC, 400)
 }
@@ -84,7 +84,7 @@ func TestLatency(t *testing.T) {
 
 	ld := LocationData{}
 	uptime, latency, meta, _, err := ld.GetDocument(req)
-	assert.True(t, latency.TotalLatency > (2*time.Second), "Latency measurement seems inaccurate.")
+	assert.True(t, latency.TotalLatency > 2, "Latency measurement seems inaccurate.")
 	assert.Equal(t, meta.Document, "Slow Request")
 	assert.Equal(t, uptime.RC, 200)
 }
