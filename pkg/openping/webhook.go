@@ -27,6 +27,7 @@ func (wh *WebHookConfig) Alert(message string) (err error) {
 	client := &http.Client{}
 	_, err = client.Do(request)
 	if err != nil {
+		log.Printf("Webhook alert failed: %v", err.Error())
 		panic(err)
 	}
 	// defer resp.Body.Close()

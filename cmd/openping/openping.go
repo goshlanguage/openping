@@ -47,15 +47,21 @@ func main() {
 		store = ping.NewDocumentStore()
 	}
 
+	// Here, if the NewMongoStore factory returns an error, we don't output mongoURL 
+	// as to keep any user/pass out of stdout.
 	if mongoURL != "" {
 		log.Printf("Connecting to MongoDB: %v", mongoURL)
 		if mongoUser != "" && mongoPassword != "" {
+			log.Printf("Configured mongo auth with environment vars.")
 			store, err = ping.NewMongoStore(mongoURL, mongoUser, mongoPassword)
+			if err != nil {
+				log.Printf("Error connecting to MongoDB, Error: %v", err.Error())
+			}
 		} else {
 			store, err = ping.NewMongoStore(mongoURL, "", "")
-		}
-		if err != nil {
-			log.Printf("Error: %v", err.Error())
+			if err != nil {
+				log.Printf("Error connecting to MongoDB url: %v\tError: %v", mongoURL, err.Error())
+			}
 		}
 	}
 

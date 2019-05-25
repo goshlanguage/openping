@@ -53,3 +53,11 @@ type LocationData struct {
 	Country string `json:"country,omitempty"`
 	IP      string `json:"ip,omitempty"` // TODO write function to get IP
 }
+
+type Ping struct {
+	UptimeData Uptime
+	LatencyData Latency
+	ContentSizesData ContentSizes
+	Metadatas Metadata
+	LocationDatas LocationData
+}

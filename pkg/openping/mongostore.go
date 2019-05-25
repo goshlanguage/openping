@@ -3,11 +3,13 @@ package ping
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 // MongoStore contains information required to establish a mondodb connection and read/write data
@@ -32,6 +34,14 @@ func NewMongoStore(mongoDBURL string, user string, password string) (*MongoStore
 	if err != nil {
 		return nil, err
 	}
+
+	// Ping the new mongo server to see if we have a successful connection
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		log.Printf("Error pinging configured mongoURL: %v", err.Error())
+		return nil, err
+	}
+
 	return &MongoStore{
 		MongoDBURL: mongoDBURL,
 		Client:     client,
