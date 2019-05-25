@@ -60,7 +60,7 @@ func main() {
 		} else {
 			store, err = ping.NewMongoStore(mongoURL, "", "")
 			if err != nil {
-				log.Printf("Error connecting to MongoDB url: %v\tError: %v", mongoURL, err.Error())
+				panic(fmt.Sprintf("Error connecting to MongoDB url: %v\tError: %v", mongoURL, err.Error()))
 			}
 		}
 	}
